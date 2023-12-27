@@ -1,2 +1,2 @@
-# t-rkiye-address-api
+# turkey-address-api
 Türkiye'de ki il, ilçe, mahalle/köy verilerine ulaşabileceğiniz bir API.
