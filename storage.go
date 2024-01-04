@@ -24,8 +24,8 @@ type MysqlStorage struct {
 // }
 
 func NewMysqlStorage() (*MysqlStorage, error) {
-	connStr := "user=ubo dbname=turkey-api-db password=Ubovic-mysql-passwd361. sslmode=disabled"
-	db, err := sql.Open("mysql", connStr)
+
+	db, err := sql.Open("mysql", "ubo:Ubovic-mysql-passwd361.:@tcp(172.19.0.1:3306)/turkey-api-db")
 	if err != nil {
 		return nil, err
 	}
