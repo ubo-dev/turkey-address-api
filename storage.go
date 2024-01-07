@@ -9,6 +9,32 @@ type MysqlStorage struct {
 	db *sql.DB
 }
 
+type Storage interface {
+	GetAllCities() ([]City, error)
+	GetCityById(id int) (City, error)
+	GetAllDistricts() ([]District, error)
+	GetDistrictById(id int) (District, error)
+	GetAllNeighboorhoods() ([]Neighboorhood, error)
+	GetNeighboorhoodsByDistrictId(id int) ([]Neighboorhood, error)
+}
+
+type City struct {
+	Id       int
+	CityName string
+}
+
+type District struct {
+	Id           int
+	DistrictName string
+	CityId       int
+}
+
+type Neighboorhood struct {
+	Id                int
+	NeighboorhoodName string
+	DistrictId        int
+}
+
 // cfg := mysql.Config{
 // 	User:   os.Getenv("DBUSER"),
 // 	Passwd: os.Getenv("DBPASS"),
@@ -66,7 +92,7 @@ func (s *MysqlStorage) createDistrictTable() error {
 }
 
 func (s *MysqlStorage) ReadFromFile() (string, error) {
-	data, err := os.ReadFile("/data.sql")
+	data, err := os.ReadFile("data.sql")
 	if err != nil {
 		return string(data), err
 	}
