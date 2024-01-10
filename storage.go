@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 )
 
@@ -11,11 +12,11 @@ type MysqlStorage struct {
 
 type Storage interface {
 	GetAllCities() ([]City, error)
-	GetCityById(id int) (City, error)
-	GetAllDistricts() ([]District, error)
-	GetDistrictById(id int) (District, error)
-	GetAllNeighboorhoods() ([]Neighboorhood, error)
-	GetNeighboorhoodsByDistrictId(id int) ([]Neighboorhood, error)
+	// GetCityById(id int) (City, error)
+	// GetAllDistricts() ([]District, error)
+	// GetDistrictById(id int) (District, error)
+	// GetAllNeighboorhoods() ([]Neighboorhood, error)
+	// GetNeighboorhoodsByDistrictId(id int) ([]Neighboorhood, error)
 }
 
 type City struct {
@@ -49,9 +50,17 @@ type Neighboorhood struct {
 // 	log.Fatal(err)
 // }
 
+var (
+	DB_USER     = os.Getenv("DB_USER")
+	DB_PASSWORD = os.Getenv("DB_PASSWORD")
+	DB_NAME     = os.Getenv("DB_NAME")
+	DB_HOST     = os.Getenv("DB_HOST")
+	DB_PORT     = os.Getenv("DB_PORT")
+)
+
 func NewMysqlStorage() (*MysqlStorage, error) {
 
-	db, err := sql.Open("mysql", "ubo:Ubovic-mysql-passwd361.:@tcp(172.19.0.1:3306)/turkey-api-db")
+	db, err := sql.Open("mysql", DB_USER+":"+DB_PASSWORD+"@tcp("+DB_HOST+":"+DB_PORT+")/"+DB_NAME+"?charset=utf8")
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +73,7 @@ func NewMysqlStorage() (*MysqlStorage, error) {
 }
 
 func (s *MysqlStorage) Init() error {
-	_, err := s.createCityTable(), s.createDistrictTable()
+	_, _, err := s.createCityTable(), s.createDistrictTable(), s.ReadFromFile()
 	return err
 }
 
@@ -91,14 +100,17 @@ func (s *MysqlStorage) createDistrictTable() error {
 	return err
 }
 
-func (s *MysqlStorage) ReadFromFile() (string, error) {
+func (s *MysqlStorage) ReadFromFile() error {
 	data, err := os.ReadFile("data.sql")
-	if err != nil {
-		return string(data), err
-	}
-	return string(data), err
+	fmt.Println(string(data))
+	return err
 }
 
 func (s *MysqlStorage) insertDataSql() error {
 	return nil
+}
+
+// GetAllCities implements Storage.
+func (*MysqlStorage) GetAllCities() ([]City, error) {
+	panic("unimplemented")
 }
