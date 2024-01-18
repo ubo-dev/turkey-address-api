@@ -73,7 +73,7 @@ func NewMysqlStorage() (*MysqlStorage, error) {
 }
 
 func (s *MysqlStorage) Init() error {
-	_, _, err := s.createCityTable(), s.createDistrictTable(), s.ReadFromFile()
+	_, _, err := s.createCityTable(), s.createDistrictTable(), s.ReadFromFile() ///s.createNeighboorhoodTable(),
 	return err
 }
 
@@ -100,6 +100,19 @@ func (s *MysqlStorage) createDistrictTable() error {
 	return err
 }
 
+func (s *MysqlStorage) createNeighboorhoodTable() error {
+	query := `
+		create table if not exists city(
+			id primary key,
+			id zipcode,
+			neighboorhood_name varchar(55),
+			district_id int 
+		)
+	`
+	_, err := s.db.Exec(query)
+	return err
+}
+
 func (s *MysqlStorage) ReadFromFile() error {
 	data, err := os.ReadFile("data.sql")
 	fmt.Println(string(data))
@@ -112,5 +125,25 @@ func (s *MysqlStorage) insertDataSql() error {
 
 // GetAllCities implements Storage.
 func (*MysqlStorage) GetAllCities() ([]City, error) {
+	panic("unimplemented")
+}
+
+func (*MysqlStorage) GetCityById(id int) (City, error) {
+	panic("unimplemented")
+}
+
+func (*MysqlStorage) GetAllDistricts() ([]District, error) {
+	panic("unimplemented")
+}
+
+func (*MysqlStorage) GetDistrictById(id int) (District, error) {
+	panic("unimplemented")
+}
+
+func (*MysqlStorage) GetAllNeighboorhoods() ([]Neighboorhood, error) {
+	panic("unimplemented")
+}
+
+func (*MysqlStorage) GetNeighboorhoodsByDistrictId(id int) ([]Neighboorhood, error) {
 	panic("unimplemented")
 }
