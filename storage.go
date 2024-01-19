@@ -115,7 +115,10 @@ func (s *MysqlStorage) createNeighboorhoodTable() error {
 
 func (s *MysqlStorage) ReadFromFile() error {
 	data, err := os.ReadFile("data.sql")
-	fmt.Println(string(data))
+	if err != nil {
+		fmt.Println(err)
+	}
+	_, err = s.db.Exec(string(data))
 	return err
 }
 
