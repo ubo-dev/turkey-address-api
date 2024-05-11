@@ -1,16 +1,27 @@
-# Use root/example as user/password credentials
-version: '3.1'
-
 services:
-
-  db:
+  mysql:
     image: mysql
+    container_name: turkey-address-api-mysql
     command: --default-authentication-plugin=caching_sha2_password
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - 3306:3306
+      - '3306:3306'
+        
+  redis:
+    container_name: turkey-address-api-redis
+    image: redis:latest
+    ports:
+      - '6379:6379'
+    expose:
+      - '6379'
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    environment:
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
