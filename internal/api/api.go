@@ -1,16 +1,16 @@
-package main
+package api
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/ubo-dev/turkey-address-api/internal/repository"
 )
 
 type APIServer struct {
 	listenAddr string
-	store      Storage
+	repository repository.Repository
 }
 
 type apiFunc func(w http.ResponseWriter, r *http.Request) error
@@ -19,24 +19,22 @@ type ApiError struct {
 	Error string `json:"error"`
 }
 
-func NewAPIServer(listenAddr string, store Storage) *APIServer {
+func NewAPIServer(listenAddr string, repository repository.Repository) *APIServer {
 	return &APIServer{
 		listenAddr: listenAddr,
-		store:      store,
+		repository: repository,
 	}
 }
 
 func (s *APIServer) Run() {
-	router := mux.NewRouter()
 
 	log.Println("JSON API server running on port: ", s.listenAddr)
-	router.HandleFunc("/cities", makeHttpHandleFunc(s.handleGetAllCities))
 
-	http.ListenAndServe(s.listenAddr, router)
+	http.HandleFunc("GET /cities", makeHttpHandleFunc(s.handleGetAllCities))
 }
 
 func (s *APIServer) handleGetAllCities(w http.ResponseWriter, r *http.Request) error {
-	cities, err := s.store.GetAllCities()
+	cities, err := s.repository.GetAllCities()
 	if err != nil {
 		return err
 	}

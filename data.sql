@@ -1,4 +1,4 @@
-insert into city (id, city_name)
+insert ignore into city (id, city_name)
 values  (1, 'ADANA'),
         (2, 'ADIYAMAN'),
         (3, 'AFYONKARAHİSAR'),
@@ -81,7 +81,7 @@ values  (1, 'ADANA'),
         (80, 'YOZGAT'),
         (81, 'ZONGULDAK');
 
-insert into public.t_district (id, district_name, city_id)
+insert ignore into district (id, district_name, city_id)
 values  (1, 'KOZAN', 1),
         (2, 'SAİMBEYLİ', 1),
         (3, 'POZANTI', 1),
@@ -1057,7 +1057,7 @@ values  (1, 'KOZAN', 1),
         (973, 'EREĞLİ', 81);
 
 
-insert into public.t_neighbourhood (id, postal_code, town_name, district_id)
+insert ignore into neighbourhood (id, postal_code, neighbourhood_name, district_id)
 values  (1, '01720', 'AKPINAR MAH', 8),
         (2, '01720', 'BAŞPINAR MAH', 8),
         (3, '01720', 'MANSURLU MAH', 8),
