@@ -11,8 +11,8 @@ type District struct {
 	CityId       int    `json:"cityId"`
 }
 
-type Neighboorhood struct {
-	Id                int    `json:"neighboorhoodId"`
-	NeighboorhoodName string `json:"neighboorhoodName"`
+type Neighbourhood struct {
+	Id                int    `json:"neighbourhoodId"`
+	NeighbourhoodName string `json:"neighbourhoodName"`
 	DistrictId        int    `json:"districtId"`
 }

@@ -16,36 +16,24 @@ type MysqlRepository struct {
 
 type Repository interface {
 	GetAllCities() ([]model.City, error)
-	// GetCityById(id int) (City, error)
-	// GetAllDistricts() ([]District, error)
-	// GetDistrictById(id int) (District, error)
-	// GetAllNeighboorhoods() ([]Neighboorhood, error)
-	// GetNeighboorhoodsByDistrictId(id int) ([]Neighboorhood, error)
+	GetCityById(id int) (model.City, error)
+	GetAllDistricts() ([]model.District, error)
+	GetDistrictById(id int) (model.District, error)
+	GetDistrictByCityId(id int) ([]model.District, error)
+	GetAllNeighbourhoods() ([]model.Neighbourhood, error)
+	GetNeighbourhoodsByDistrictId(id int) ([]model.Neighbourhood, error)
+	GetNeighbourhoodsByDistrictName(districtName string) ([]model.Neighbourhood, error)
+	GetNeighbourhoodsByZipCode(zipCode string) ([]model.Neighbourhood, error)
 }
 
-//	cfg := mysql.Config{
-//		User:   os.Getenv("DBUSER"),
-//		Passwd: os.Getenv("DBPASS"),
-//		Net:    "tcp",
-//		Addr:   "127.0.0.1:3306",
-//		DBName: "recordings",
-//	}
-//
-// // Get a database handle.
-// var err error
-// db, err = sql.Open("mysql", cfg.FormatDSN())
-//
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func NewMysqlStorage() (*MysqlRepository, error) {
-
 	pwd, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
 
 	err = godotenv.Load(filepath.Join(pwd, ".env"))
+	// err = godotenv.Load(filepath.Join(pwd, "../.env"))
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +46,14 @@ func NewMysqlStorage() (*MysqlRepository, error) {
 		DB_HOST     = os.Getenv("MYSQL_HOST")
 	)
 
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?multiStatements=true", DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
+	connectionString := fmt.Sprintf(
+		"%s:%s@tcp(%s:%s)/%s?multiStatements=true",
+		DB_USER,
+		DB_PASSWORD,
+		DB_HOST,
+		DB_PORT,
+		DB_NAME,
+	)
 	fmt.Println(connectionString)
 	db, err := sql.Open("mysql", connectionString)
 	db.SetMaxIdleConns(0)
@@ -74,7 +69,7 @@ func NewMysqlStorage() (*MysqlRepository, error) {
 }
 
 func (s *MysqlRepository) Init() error {
-	_, _, _, err := s.createCityTable(), s.createDistrictTable(), s.createNeighbourhoodable(), s.ReadFromFile()
+	_, _, _, err := s.createCityTable(), s.createDistrictTable(), s.createNeighbourhoodTable(), s.ReadFromFile()
 	return err
 }
 
@@ -104,7 +99,7 @@ func (s *MysqlRepository) createDistrictTable() error {
 	return err
 }
 
-func (s *MysqlRepository) createNeighbourhoodable() error {
+func (s *MysqlRepository) createNeighbourhoodTable() error {
 	query := `
 		create table if not exists neighbourhood(
 			id int primary key,
@@ -121,6 +116,7 @@ func (s *MysqlRepository) createNeighbourhoodable() error {
 
 func (s *MysqlRepository) ReadFromFile() error {
 	data, err := os.ReadFile("data.sql")
+	// data, err := os.ReadFile("../data.sql")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -148,4 +144,155 @@ func (s *MysqlRepository) GetAllCities() ([]model.City, error) {
 		cities = append(cities, city)
 	}
 	return cities, nil
+}
+
+func (s *MysqlRepository) GetCityById(id int) (model.City, error) {
+	query := `
+		select * from city where id = ?
+	`
+	row := s.db.QueryRow(query, id)
+
+	var city model.City
+	if err := row.Scan(&city.Id, &city.CityName); err != nil {
+		return model.City{}, err
+	}
+	return city, nil
+}
+
+func (s *MysqlRepository) GetAllDistricts() ([]model.District, error) {
+	query := `
+		select * from district
+	`
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	var districts []model.District
+	for rows.Next() {
+		var district model.District
+		if err := rows.Scan(&district.Id, &district.DistrictName, &district.DistrictName); err != nil {
+			return nil, err
+		}
+		districts = append(districts, district)
+	}
+	return districts, nil
+}
+
+func (s *MysqlRepository) GetDistrictById(id int) (model.District, error) {
+	query := `
+		select * from district where id = ?
+	`
+
+	row := s.db.QueryRow(query, id)
+	var district model.District
+	if err := row.Scan(&district.Id, &district.DistrictName, &district.CityId); err != nil {
+		return model.District{}, err
+	}
+	return district, nil
+}
+
+func (s *MysqlRepository) GetDistrictByCityId(id int) ([]model.District, error) {
+	query := `
+		select * from district where city_id = ?
+	`
+
+	rows, err := s.db.Query(query, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var districts []model.District
+	for rows.Next() {
+		var district model.District
+		if err := rows.Scan(&district.Id, &district.DistrictName, &district.CityId); err != nil {
+			return nil, err
+		}
+		districts = append(districts, district)
+	}
+	return districts, nil
+}
+
+func (s *MysqlRepository) GetAllNeighbourhoods() ([]model.Neighbourhood, error) {
+	query := `
+		select * from neighbourhood
+	`
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	var neighbourhoods []model.Neighbourhood
+	for rows.Next() {
+		var neighbourhood model.Neighbourhood
+		if err := rows.Scan(&neighbourhood.Id, &neighbourhood.NeighbourhoodName, &neighbourhood.DistrictId); err != nil {
+			return nil, err
+		}
+		neighbourhoods = append(neighbourhoods, neighbourhood)
+	}
+	return neighbourhoods, nil
+}
+
+func (s *MysqlRepository) GetNeighboorhoodsByDistrictId(id int) ([]model.Neighbourhood, error) {
+	query := `
+		select * from neighbourhood where district_id = ?
+	`
+	rows, err := s.db.Query(query, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var neighbourhoods []model.Neighbourhood
+	for rows.Next() {
+		var neighbourhood model.Neighbourhood
+		if err := rows.Scan(&neighbourhood.Id, &neighbourhood.NeighbourhoodName, &neighbourhood.DistrictId); err != nil {
+			return nil, err
+		}
+		neighbourhoods = append(neighbourhoods, neighbourhood)
+	}
+	return neighbourhoods, nil
+}
+
+func (s *MysqlRepository) GetNeighboorhoodsByDistrictName(
+	districtName string,
+) ([]model.Neighbourhood, error) {
+	query := `
+		select * from neighbourhood where district_id = (select id from district where district_name = ?)
+	`
+	rows, err := s.db.Query(query, districtName)
+	if err != nil {
+		return nil, err
+	}
+
+	var neighbourhoods []model.Neighbourhood
+	for rows.Next() {
+		var neighbourhood model.Neighbourhood
+		if err := rows.Scan(&neighbourhood.Id, &neighbourhood.NeighbourhoodName, &neighbourhood.DistrictId); err != nil {
+			return nil, err
+		}
+		neighbourhoods = append(neighbourhoods, neighbourhood)
+	}
+	return neighbourhoods, nil
+}
+
+func (s *MysqlRepository) GetNeighboorhoodsByZipCode(
+	zipCode string,
+) ([]model.Neighbourhood, error) {
+	query := `
+		select * from neighbourhood where postal_code = ?
+	`
+	rows, err := s.db.Query(query, zipCode)
+	if err != nil {
+		return nil, err
+	}
+
+	var neighbourhoods []model.Neighbourhood
+	for rows.Next() {
+		var neighbourhood model.Neighbourhood
+		if err := rows.Scan(&neighbourhood.Id, &neighbourhood.NeighbourhoodName, &neighbourhood.DistrictId); err != nil {
+			return nil, err
+		}
+		neighbourhoods = append(neighbourhoods, neighbourhood)
+	}
+	return neighbourhoods, nil
 }

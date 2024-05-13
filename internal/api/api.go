@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/ubo-dev/turkey-address-api/internal/repository"
 )
@@ -27,10 +28,39 @@ func NewAPIServer(listenAddr string, repository repository.Repository) *APIServe
 }
 
 func (s *APIServer) Run() {
+	handler := http.NewServeMux()
 
 	log.Println("JSON API server running on port: ", s.listenAddr)
 
-	http.HandleFunc("GET /cities", makeHttpHandleFunc(s.handleGetAllCities))
+	handler.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		_, err := w.Write([]byte("Hello, World!"))
+		if err != nil {
+			panic(err)
+		}
+	})
+
+	handler.HandleFunc("GET /city", makeHttpHandleFunc(s.handleGetAllCities))
+	handler.HandleFunc("GET /districts", makeHttpHandleFunc(s.handleGetAllDistricts))
+	handler.HandleFunc("GET /neighbourhood", makeHttpHandleFunc(s.handleGetAllNeighbourhoods))
+
+	handler.HandleFunc("GET /city/{id}", makeHttpHandleFunc(s.handleGetCityById))
+
+	handler.HandleFunc("GET /district/{id}", makeHttpHandleFunc(s.handleGetDistrictById))
+	handler.HandleFunc("GET /district/{cityId}", makeHttpHandleFunc(s.handleGetDistrictByCityId))
+
+	handler.HandleFunc(
+		"GET /neighbourhood/{zipCode}",
+		makeHttpHandleFunc(s.handleGetGetNeighbourhoodsByZipCode),
+	)
+	handler.HandleFunc(
+		"GET /neighbourhood/{districtName}",
+		makeHttpHandleFunc(s.handleGetNeighbourhoodsByDistrictName),
+	)
+
+	err := http.ListenAndServe(s.listenAddr, handler)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (s *APIServer) handleGetAllCities(w http.ResponseWriter, r *http.Request) error {
@@ -40,6 +70,125 @@ func (s *APIServer) handleGetAllCities(w http.ResponseWriter, r *http.Request) e
 	}
 
 	return WriteJSON(w, http.StatusOK, cities)
+}
+
+func (s *APIServer) handleGetCityById(w http.ResponseWriter, r *http.Request) error {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		return err
+	}
+
+	city, err := s.repository.GetCityById(id)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, city)
+}
+
+func (s *APIServer) handleGetAllDistricts(w http.ResponseWriter, r *http.Request) error {
+	districts, err := s.repository.GetAllDistricts()
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, districts)
+}
+
+func (s *APIServer) handleGetDistrictById(w http.ResponseWriter, r *http.Request) error {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		return err
+	}
+
+	districts, err := s.repository.GetDistrictById(id)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, districts)
+}
+
+func (s *APIServer) handleGetDistrictByCityId(w http.ResponseWriter, r *http.Request) error {
+	id, err := strconv.Atoi(r.PathValue("cityId"))
+	if err != nil {
+		return err
+	}
+
+	districts, err := s.repository.GetDistrictByCityId(id)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, districts)
+}
+
+func (s *APIServer) handleGetAllNeighbourhoods(w http.ResponseWriter, r *http.Request) error {
+	neighbourhoods, err := s.repository.GetAllNeighbourhoods()
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, neighbourhoods)
+}
+
+func (s *APIServer) handleGetGetNeighbourhoodsByZipCode(
+	w http.ResponseWriter,
+	r *http.Request,
+) error {
+	zipCode := r.PathValue("zipCode")
+
+	neighbourhoods, err := s.repository.GetNeighbourhoodsByZipCode(zipCode)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, neighbourhoods)
+}
+
+func (s *APIServer) handleGetNeighbourhoodsByZipCode(
+	w http.ResponseWriter,
+	r *http.Request,
+) error {
+	zipCode := r.PathValue("zipCode")
+
+	neighbourhoods, err := s.repository.GetNeighbourhoodsByZipCode(zipCode)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, neighbourhoods)
+}
+
+func (s *APIServer) handleGetNeighbourhoodsByDistrictName(
+	w http.ResponseWriter,
+	r *http.Request,
+) error {
+	districtName := r.PathValue("districtName")
+
+	neighbourhoods, err := s.repository.GetNeighbourhoodsByDistrictName(districtName)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, neighbourhoods)
+}
+
+func (s *APIServer) handleGetNeighbourhoodsByDistrictId(
+	w http.ResponseWriter,
+	r *http.Request,
+) error {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		return err
+	}
+
+	neighbourhoods, err := s.repository.GetNeighbourhoodsByDistrictId(id)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, neighbourhoods)
 }
 
 func makeHttpHandleFunc(fn apiFunc) http.HandlerFunc {
