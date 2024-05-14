@@ -171,7 +171,7 @@ func (s *MysqlRepository) GetAllDistricts() ([]model.District, error) {
 	var districts []model.District
 	for rows.Next() {
 		var district model.District
-		if err := rows.Scan(&district.Id, &district.DistrictName, &district.DistrictName); err != nil {
+		if err := rows.Scan(&district.Id, &district.DistrictName, &district.CityId); err != nil {
 			return nil, err
 		}
 		districts = append(districts, district)
@@ -225,7 +225,7 @@ func (s *MysqlRepository) GetAllNeighbourhoods() ([]model.Neighbourhood, error) 
 	var neighbourhoods []model.Neighbourhood
 	for rows.Next() {
 		var neighbourhood model.Neighbourhood
-		if err := rows.Scan(&neighbourhood.Id, &neighbourhood.NeighbourhoodName, &neighbourhood.DistrictId); err != nil {
+		if err := rows.Scan(&neighbourhood.Id, &neighbourhood.ZipCode, &neighbourhood.NeighbourhoodName, &neighbourhood.DistrictId); err != nil {
 			return nil, err
 		}
 		neighbourhoods = append(neighbourhoods, neighbourhood)
@@ -233,7 +233,7 @@ func (s *MysqlRepository) GetAllNeighbourhoods() ([]model.Neighbourhood, error) 
 	return neighbourhoods, nil
 }
 
-func (s *MysqlRepository) GetNeighboorhoodsByDistrictId(id int) ([]model.Neighbourhood, error) {
+func (s *MysqlRepository) GetNeighbourhoodsByDistrictId(id int) ([]model.Neighbourhood, error) {
 	query := `
 		select * from neighbourhood where district_id = ?
 	`
@@ -245,7 +245,7 @@ func (s *MysqlRepository) GetNeighboorhoodsByDistrictId(id int) ([]model.Neighbo
 	var neighbourhoods []model.Neighbourhood
 	for rows.Next() {
 		var neighbourhood model.Neighbourhood
-		if err := rows.Scan(&neighbourhood.Id, &neighbourhood.NeighbourhoodName, &neighbourhood.DistrictId); err != nil {
+		if err := rows.Scan(&neighbourhood.Id, &neighbourhood.ZipCode, &neighbourhood.NeighbourhoodName, &neighbourhood.DistrictId); err != nil {
 			return nil, err
 		}
 		neighbourhoods = append(neighbourhoods, neighbourhood)
@@ -253,7 +253,7 @@ func (s *MysqlRepository) GetNeighboorhoodsByDistrictId(id int) ([]model.Neighbo
 	return neighbourhoods, nil
 }
 
-func (s *MysqlRepository) GetNeighboorhoodsByDistrictName(
+func (s *MysqlRepository) GetNeighbourhoodsByDistrictName(
 	districtName string,
 ) ([]model.Neighbourhood, error) {
 	query := `
@@ -267,7 +267,7 @@ func (s *MysqlRepository) GetNeighboorhoodsByDistrictName(
 	var neighbourhoods []model.Neighbourhood
 	for rows.Next() {
 		var neighbourhood model.Neighbourhood
-		if err := rows.Scan(&neighbourhood.Id, &neighbourhood.NeighbourhoodName, &neighbourhood.DistrictId); err != nil {
+		if err := rows.Scan(&neighbourhood.Id, &neighbourhood.ZipCode, &neighbourhood.NeighbourhoodName, &neighbourhood.DistrictId); err != nil {
 			return nil, err
 		}
 		neighbourhoods = append(neighbourhoods, neighbourhood)
@@ -275,7 +275,7 @@ func (s *MysqlRepository) GetNeighboorhoodsByDistrictName(
 	return neighbourhoods, nil
 }
 
-func (s *MysqlRepository) GetNeighboorhoodsByZipCode(
+func (s *MysqlRepository) GetNeighbourhoodsByZipCode(
 	zipCode string,
 ) ([]model.Neighbourhood, error) {
 	query := `
@@ -289,7 +289,7 @@ func (s *MysqlRepository) GetNeighboorhoodsByZipCode(
 	var neighbourhoods []model.Neighbourhood
 	for rows.Next() {
 		var neighbourhood model.Neighbourhood
-		if err := rows.Scan(&neighbourhood.Id, &neighbourhood.NeighbourhoodName, &neighbourhood.DistrictId); err != nil {
+		if err := rows.Scan(&neighbourhood.Id, &neighbourhood.ZipCode, &neighbourhood.NeighbourhoodName, &neighbourhood.DistrictId); err != nil {
 			return nil, err
 		}
 		neighbourhoods = append(neighbourhoods, neighbourhood)

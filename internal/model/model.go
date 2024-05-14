@@ -13,6 +13,7 @@ type District struct {
 
 type Neighbourhood struct {
 	Id                int    `json:"neighbourhoodId"`
+	ZipCode           string `json:"zipCode"`
 	NeighbourhoodName string `json:"neighbourhoodName"`
 	DistrictId        int    `json:"districtId"`
 }

@@ -11,7 +11,7 @@ import (
 
 type APIServer struct {
 	listenAddr string
-	repository repository.Repository
+	repository *repository.MysqlRepository
 }
 
 type apiFunc func(w http.ResponseWriter, r *http.Request) error
@@ -20,7 +20,7 @@ type ApiError struct {
 	Error string `json:"error"`
 }
 
-func NewAPIServer(listenAddr string, repository repository.Repository) *APIServer {
+func NewAPIServer(listenAddr string, repository *repository.MysqlRepository) *APIServer {
 	return &APIServer{
 		listenAddr: listenAddr,
 		repository: repository,
@@ -39,22 +39,31 @@ func (s *APIServer) Run() {
 		}
 	})
 
+	// cities : sehirler
 	handler.HandleFunc("GET /city", makeHttpHandleFunc(s.handleGetAllCities))
-	handler.HandleFunc("GET /districts", makeHttpHandleFunc(s.handleGetAllDistricts))
-	handler.HandleFunc("GET /neighbourhood", makeHttpHandleFunc(s.handleGetAllNeighbourhoods))
-
 	handler.HandleFunc("GET /city/{id}", makeHttpHandleFunc(s.handleGetCityById))
 
+	// districts : ilceler
+	handler.HandleFunc("GET /districts", makeHttpHandleFunc(s.handleGetAllDistricts))
 	handler.HandleFunc("GET /district/{id}", makeHttpHandleFunc(s.handleGetDistrictById))
-	handler.HandleFunc("GET /district/{cityId}", makeHttpHandleFunc(s.handleGetDistrictByCityId))
-
 	handler.HandleFunc(
-		"GET /neighbourhood/{zipCode}",
+		"GET /district/getByCityId/{cityId}",
+		makeHttpHandleFunc(s.handleGetDistrictByCityId),
+	)
+
+	// neighbourhoods : mahalleler
+	handler.HandleFunc("GET /neighbourhood", makeHttpHandleFunc(s.handleGetAllNeighbourhoods))
+	handler.HandleFunc(
+		"GET /neighbourhood/getByZipCode/{zipCode}",
 		makeHttpHandleFunc(s.handleGetGetNeighbourhoodsByZipCode),
 	)
 	handler.HandleFunc(
-		"GET /neighbourhood/{districtName}",
+		"GET /neighbourhood/getByDistrictName/{districtName}",
 		makeHttpHandleFunc(s.handleGetNeighbourhoodsByDistrictName),
+	)
+	handler.HandleFunc(
+		"GET /neighbourhood/getByDistrictId/{id}",
+		makeHttpHandleFunc(s.handleGetNeighbourhoodsByDistrictId),
 	)
 
 	err := http.ListenAndServe(s.listenAddr, handler)
